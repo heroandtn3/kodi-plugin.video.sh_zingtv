@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import sys
 import urllib
 import urlparse
@@ -26,37 +27,41 @@ def build_url(query):
     return base_url + '?' + urllib.urlencode(query)
 
 def show_genres(genres):
+    items = []
     for genre in genres:
         url = build_url({
             'mode': 'genre', 
             'genre_id': genre['id']
         })
-        li = xbmcgui.ListItem('Genre - ' + genre['name'])
-        xbmcplugin.addDirectoryItem(
-            handle=addon_handle, url=url, listitem=li, isFolder=True)
+        li = xbmcgui.ListItem(genre['name'] + '...')
+        items.append((url, li, True))
+    xbmcplugin.addDirectoryItems(addon_handle, items, len(items))
 
 def show_programs(programs):
+    items = []
     for program in programs:
         url = build_url({
             'mode': 'program', 
             'program_id': program['id']
         })
-        li = xbmcgui.ListItem('Program - ' + program['name'])
-        xbmcplugin.addDirectoryItem(
-            handle=addon_handle, url=url, listitem=li, isFolder=True)
+        li = xbmcgui.ListItem(program['name'] + '...')
+        items.append((url, li, True))
+    xbmcplugin.addDirectoryItems(addon_handle, items, len(items))
 
 def show_series(series):
+    items = []
     for seri in series:
         url = build_url({
             'mode': 'seri', 
             'seri_id': seri['id'],
             'total': seri['total']
         })
-        li = xbmcgui.ListItem('Series - ' + seri['name'])
-        xbmcplugin.addDirectoryItem(
-            handle=addon_handle, url=url, listitem=li, isFolder=True)
+        li = xbmcgui.ListItem(seri['name'] + '...')
+        items.append((url, li, True))
+    xbmcplugin.addDirectoryItems(addon_handle, items, len(items))
 
 def show_medias(medias):
+    items = []
     for media in medias:
         # url = build_url({
         #     'mode': 'media', 
@@ -64,9 +69,9 @@ def show_medias(medias):
         #     'file_url': media['file_url']
         # })
         url = 'http://' + media['file_url']
-        li = xbmcgui.ListItem('Media - ' + media['full_name'])
-        xbmcplugin.addDirectoryItem(
-            handle=addon_handle, url=url, listitem=li, isFolder=False)
+        li = xbmcgui.ListItem(media['full_name'])
+        items.append((url, li, False))
+    xbmcplugin.addDirectoryItems(addon_handle, items, len(items))
 
 #========================================================================
 #=================== DISPATCHER =========================================
@@ -115,17 +120,7 @@ def dispatch(mode):
                     'genre_id': genre_id,
                     'page': next_page
                 })
-                li = xbmcgui.ListItem('-> Page %s' % next_page)
-                xbmcplugin.addDirectoryItem(
-                    handle=addon_handle, url=url, listitem=li, isFolder=True)
-            # add 1st page btn
-            if page > 1:
-                url = build_url({
-                    'mode': 'genre', 
-                    'genre_id': genre_id,
-                    'page': 1
-                })
-                li = xbmcgui.ListItem('<-First Page')
+                li = xbmcgui.ListItem('-> Trang %s' % next_page)
                 xbmcplugin.addDirectoryItem(
                     handle=addon_handle, url=url, listitem=li, isFolder=True)
         
@@ -154,12 +149,14 @@ def dispatch(mode):
         # show medias
         seri_id = args['seri_id'][0]
         count = 10
+        
         if 'page' in args:
             page = int(args['page'][0])
+            total_page = int(args['total_page'][0])
         else:
-            total = int(args['total'][0])
-            page = (total / count) + 1
-            print('First page: %s' % page)
+            total_media = int(args['total'][0])
+            total_page = (total_media / count) + 1
+            page = total_page
         
         medias = zing_api.series_medias(seri_id, count=count, page=page)['response']
         show_medias(reversed(medias))
@@ -170,9 +167,10 @@ def dispatch(mode):
             url = build_url({
                 'mode': 'seri', 
                 'seri_id': seri_id,
-                'page': next_page
+                'page': next_page,
+                'total_page': total_page
             })
-            li = xbmcgui.ListItem('-> Page %s' % next_page)
+            li = xbmcgui.ListItem('-> Trang %s' % (total_page - next_page + 1))
             xbmcplugin.addDirectoryItem(
                 handle=addon_handle, url=url, listitem=li, isFolder=True)
 
