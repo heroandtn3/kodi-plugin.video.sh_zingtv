@@ -21,7 +21,7 @@ def genre_child(genre_id=None):
         }).json()
     else:
         return {
-            'total': 1,
+            'total': 7,
             'response': [{
                 'id': 78,
                 'name': 'TV Show'
